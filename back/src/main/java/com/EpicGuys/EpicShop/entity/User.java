@@ -2,7 +2,7 @@ package com.EpicGuys.EpicShop.entity;
 
 import java.util.Set;
 
-import com.epicGuys.app.articles.entity.Role;
+import com.EpicGuys.EpicShop.dto.AuthenticationResponse;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.ElementCollection;
@@ -15,9 +15,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "_user")
 public class User {
