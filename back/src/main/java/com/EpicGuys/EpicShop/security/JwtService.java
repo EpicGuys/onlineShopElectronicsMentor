@@ -18,7 +18,7 @@ public class JwtService {
 	
 	private final static String ACCESS_SECRET_KEY = "zL1HB3Pch05Avfynovxrf/kpF9O2m4NCWKJUjEp27s9J2jEG3ifiKCGylaZ8fDeoONSTJP/wAzKawB8F9rOMNg==";
 	private final static String REFRESH_SECRET_KEY = "qBTmv4oXFFR2GwjexDJ4t6fsIUIUhhXqlktXjXdkcyygs8nPVEwMfo29VDRRepYDVV5IkIxBMzr7OEHXEHd37w==";
-	private final static Long ACCESS_TOKE_LIFE_TIME = 60000L;
+	private final static Long ACCESS_TOKE_LIFE_TIME = 600000L;
 	private final static Long REFRESH_TOKE_LIFE_TIME = 180000L;
 	
 	public String generateAccessToken(UserDetails userDetails) {
@@ -58,8 +58,6 @@ public class JwtService {
 			return true;
 		}
 		catch(RuntimeException  exception) {
-			System.out.println("JwtService.isTokenValid: token not valid");
-			//TODO logging 
 			return false;
 		}
 	}
@@ -91,8 +89,6 @@ public class JwtService {
 			return claims;
 		}
 		catch(RuntimeException  exception) {
-			System.out.println("JwtService.extractClaims: token not valid");
-			//TODO logging 
 			return null;
 		}
 	}

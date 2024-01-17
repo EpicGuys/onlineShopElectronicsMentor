@@ -54,6 +54,7 @@ public class securityConfig {
 			.disable()
 			.cors()
 			.disable()
+			.logout(logout -> logout.disable())
 			.authorizeHttpRequests()
 			.requestMatchers("/register", "/authentication", "/refresh")
 			.permitAll()

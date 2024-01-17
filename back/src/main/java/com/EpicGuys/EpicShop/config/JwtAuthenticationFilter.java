@@ -1,6 +1,7 @@
 package com.EpicGuys.EpicShop.config;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +12,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.EpicGuys.EpicShop.entity.AccessToken;
+import com.EpicGuys.EpicShop.jpa.AccessTokenRepository;
 import com.EpicGuys.EpicShop.security.JwtService;
 import com.EpicGuys.EpicShop.security.UserDetailsImpl;
 import com.EpicGuys.EpicShop.security.UserDetailsServiceImpl;
@@ -29,6 +32,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	private JwtService jwtService;
 	@Autowired
 	private UserDetailsServiceImpl userDetailsService;
+	@Autowired
+	private AccessTokenRepository accesstokenRepository;
 
 	@Override
 	protected void doFilterInternal(
@@ -43,18 +48,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 			return;
 		}
 		jwt = authHeader.substring(7);
-		userEmail = jwtService.extractUserEmailAccessToken(jwt);
+		userEmail = jwtService.extractUserEmailAccessToken(jwt); 
 		if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 			UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-			if(jwtService.isAccessTokenValid(jwt)) {
+			Optional<AccessToken> token = accesstokenRepository.findById(userEmail);
+			if(jwtService.isAccessTokenValid(jwt) && jwt.equals(token.get().getAccessToken())) {
 				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
 						userDetails,
 						null,
 						userDetails.getAuthorities());
 				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 				SecurityContextHolder.getContext().setAuthentication(authToken);
+				filterChain.doFilter(request, response);
 			}
-			filterChain.doFilter(request, response);
+			else {
+				response.sendError(HttpServletResponse.SC_FORBIDDEN);
+			}
+		}
+		else {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 		}
 	}
 }
