@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity 
-@Table(name = "access_token")
 public class AccessToken {
 	@Id
 	private String email;
 	private String accessToken;
+	private Long expirationTime;
 }

@@ -9,5 +9,4 @@ public class EpicShopApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(EpicShopApplication.class, args);
 	}
-
 }

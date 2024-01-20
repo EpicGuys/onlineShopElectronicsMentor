@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity 
-@Table(name = "refresh_token")
 public class RefreshToken {
 	@Id
 	private String email;
 	private String refreshToken;
+	private Long expirationTime;
 }

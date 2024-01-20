@@ -49,10 +49,12 @@ public class AuthenticationService {
 		refreshTokenRepository.save(RefreshToken.builder()
 				.email(email)
 				.refreshToken(refreshToken)
+				.expirationTime(jwtService.extractExpirationTimeRefreshToken(refreshToken).getTime())
 				.build());
 		accessTokenRepository.save(AccessToken.builder()
 				.email(email)
 				.accessToken(accessToken)
+				.expirationTime(jwtService.extractExpirationTimeAccessToken(accessToken).getTime())
 				.build());
 	}
 	

@@ -4,6 +4,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +16,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 @Service
 public class JwtService {
-	
-	private final static String ACCESS_SECRET_KEY = "zL1HB3Pch05Avfynovxrf/kpF9O2m4NCWKJUjEp27s9J2jEG3ifiKCGylaZ8fDeoONSTJP/wAzKawB8F9rOMNg==";
-	private final static String REFRESH_SECRET_KEY = "qBTmv4oXFFR2GwjexDJ4t6fsIUIUhhXqlktXjXdkcyygs8nPVEwMfo29VDRRepYDVV5IkIxBMzr7OEHXEHd37w==";
-	private final static Long ACCESS_TOKE_LIFE_TIME = 600000L;
-	private final static Long REFRESH_TOKE_LIFE_TIME = 180000L;
+	@Value("${application.jwt.access.secret}")
+	private String ACCESS_SECRET_KEY;
+	@Value("${application.jwt.refresh.secret}")
+	private String REFRESH_SECRET_KEY;
+	@Value("${application.jwt.access.lifetime}")
+	private Long ACCESS_TOKE_LIFE_TIME;
+	@Value("${application.jwt.refresh.lifetime}")
+	private Long REFRESH_TOKE_LIFE_TIME;
 	
 	public String generateAccessToken(UserDetails userDetails) {
 		return Jwts
@@ -70,7 +74,15 @@ public class JwtService {
 		return extractClaim(token, getSignInKey(REFRESH_SECRET_KEY), Claims::getSubject);
 	}
 	
-	public <T> T extractClaim(String token, Key key, Function<Claims, T> claimsResolver) {
+	public Date extractExpirationTimeAccessToken(String token) {
+		return extractClaim(token, getSignInKey(ACCESS_SECRET_KEY), Claims::getExpiration);
+	}
+	
+	public Date extractExpirationTimeRefreshToken(String token) {
+		return extractClaim(token, getSignInKey(REFRESH_SECRET_KEY), Claims::getExpiration);
+	}
+	
+	private <T> T extractClaim(String token, Key key, Function<Claims, T> claimsResolver) {
 		final Claims claims = extractAllClaims(token, key);
 		if (claims != null) {
 			return claimsResolver.apply(claims);
