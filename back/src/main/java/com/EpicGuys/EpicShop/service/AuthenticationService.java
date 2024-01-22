@@ -2,6 +2,8 @@ package com.EpicGuys.EpicShop.service;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,6 +46,7 @@ public class AuthenticationService {
 	private JwtService jwtService;
 	@Autowired
 	private AuthenticationManager authenticationManager;
+	private static final Logger logger = Logger.getLogger(AuthenticationService.class.getName());
 	
 	private void saveTokens(String email, String accessToken, String refreshToken) {
 		refreshTokenRepository.save(RefreshToken.builder()
@@ -51,17 +54,18 @@ public class AuthenticationService {
 				.refreshToken(refreshToken)
 				.expirationTime(jwtService.extractExpirationTimeRefreshToken(refreshToken).getTime())
 				.build());
+		logger.info("Refresh token have been added to white list. User email: " + email);
 		accessTokenRepository.save(AccessToken.builder()
 				.email(email)
 				.accessToken(accessToken)
 				.expirationTime(jwtService.extractExpirationTimeAccessToken(accessToken).getTime())
 				.build());
+		logger.info("Access token have been added to white list. User email: " + email);
 	}
 	
 	public AuthenticationResponse register(RegisterRequest request) throws RegistrationException{
 		if(userRepository.getUserByEmail(request.getEmail()).isPresent()){
-			//TODO logging
-			System.out.println("INFO: User with this email address already exists");
+			logger.info("User with this email address already exists. User email" + request.getEmail());
 			throw new RegistrationException("User with this email address already exists");
 		}
 		User user = User.builder()
@@ -70,6 +74,7 @@ public class AuthenticationService {
 						.roles(Set.of(Role.USER))
 						.build();
 		userRepository.save(user);
+		logger.info("New user have been added to the data base. User email: " + request.getEmail());
 		String accessToken = jwtService.generateAccessToken(new UserDetailsImpl(user));
 		String refreshToken = jwtService.generateRefreshToken(new UserDetailsImpl(user));
 		saveTokens(request.getEmail(), accessToken, refreshToken);
@@ -85,8 +90,7 @@ public class AuthenticationService {
 					new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 		}
 		catch(BadCredentialsException exception) {
-			//TODO logging
-			System.out.println("INFO: Email address or password is not correct");
+			logger.info("Email address or password is not correct");
 			throw new AuthenticationException("Email address or password is not correct");
 		}
 		User user = userRepository.getUserByEmail(request.getEmail()).get();
@@ -101,14 +105,13 @@ public class AuthenticationService {
 	
 	public AuthenticationResponse refreshAccessToken(UpdateAccessTokenRequest request) throws TokenValidationException, IllegalArgumentException, TokenOutOfWhiteListException {
 		if(!jwtService.isRefreshTokenValid(request.getRefreshToken())) {
-			//TODO logging
-			System.out.println("INFO: Refresh token is not valid");
+			logger.info("Refresh token is not valid");
 			throw new TokenValidationException("Refresh token is not valid");	
 		}
 		String username = jwtService.extractUserEmailRefreshToken(request.getRefreshToken());
 		Optional<RefreshToken> token = refreshTokenRepository.findById(username);
 		if(token.isEmpty() || !request.getRefreshToken().equals(token.get().getRefreshToken())) {
-			System.out.println("INFO: There is no token in token while list");
+			logger.info("There is no token in token white list");
 			throw new TokenOutOfWhiteListException("There is no token in token while list");
 		}
 		User user = userRepository.getUserByEmail(username).get();
@@ -123,18 +126,18 @@ public class AuthenticationService {
 	
 	public void logout(LogoutRequest request) throws TokenValidationException, TokenNotFoundException{
 		if(!jwtService.isRefreshTokenValid(request.getRefreshToken())) {
-			//TODO logging
-			System.out.println("INFO: Refresh token is not valid");
+			logger.info("Refresh token is not valid");
 			throw new TokenValidationException("Refresh token is not valid");
 		}
 		String username = jwtService.extractUserEmailRefreshToken(request.getRefreshToken());
 		Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(username);
 		if(refreshToken.isEmpty()) {
-			System.out.println("INFO: There is no refresh token in the white list of refresh tokens");
+			logger.info("There is no refresh token in the white list of refresh tokens");
 			throw new TokenNotFoundException("There is no refresh token in the white list of refresh tokens");
 		}
 		refreshTokenRepository.deleteById(username);
+		logger.info("Refresh token was removed from data base. User email: " + username);
 		accessTokenRepository.deleteById(username);
-		//refreshTokenRepository.deleteByEmail(jwtService.extractUserEmailRefreshToken(request.getRefreshToken()));
+		logger.info("Access token was removed from data base. User email: " + username);
 	}
 }
