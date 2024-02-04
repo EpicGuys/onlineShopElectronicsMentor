@@ -48,7 +48,7 @@ public class AuthenticationService {
 	private AuthenticationManager authenticationManager;
 	private static final Logger logger = Logger.getLogger(AuthenticationService.class.getName());
 	
-	private void saveTokens(String email, String accessToken, String refreshToken) {
+	protected void saveTokens(String email, String accessToken, String refreshToken) {
 		refreshTokenRepository.save(RefreshToken.builder()
 				.email(email)
 				.refreshToken(refreshToken)
